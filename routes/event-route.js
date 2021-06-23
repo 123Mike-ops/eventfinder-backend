@@ -18,9 +18,7 @@ router.route('/find/:id')
       .patch(eventcontroller.updateEvent)
     
       .delete(authcontroller.protect,authcontroller.restrictTo('admin'),eventcontroller.deleteEvent)
-router.route('/createTicket/')
 
-      .post(ticketcontroller.createTicket)
       
 
 

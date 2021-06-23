@@ -8,6 +8,7 @@ router.route('/')
       
 
 router.post('/login',authcontroller.login)
+router.post('/googleLogin',authcontroller.googleLogin)
 
 router.post('/forgotPassword',authcontroller.forgotPassword)
 

@@ -15,7 +15,7 @@ const eventSChema=mongoose.Schema({
     maxNumberOfGuest:{type:Number,Required:true},
     duration:{type:String,Required:true},
     eventImgUrl:{type:String,Required:true},
-    cost:{type:String,Required:true}
+    cost:{type:Number,Required:true}
 
 })
 

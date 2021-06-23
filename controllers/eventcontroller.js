@@ -84,12 +84,12 @@ exports.getAllEvent= async (req,res,next)=>{
    try{
       
 
-      const allevents= await Event.find()   // Yetetara new k query west lemsale duration endezi yehone aweta yelewal lelochu melkiya excluded nachew
-                           // await siyareg behuala sensera sort,paginate menamen method lemtekem edel aystem so lebchaw query ketach metra
-
+      const allevents= await Event.find()   
+                           
    
    //send response 
       res.status(200).json({allevents})
+
    }catch(err)
    {
       res.json({message:err})

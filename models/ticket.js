@@ -9,17 +9,28 @@ const ticketSchema=mongoose.Schema({
     eventId:{
         type:String,Required:true
     },
+    userId:{
+        type:String,Required:true
+    },
     validUpTo:{
         type:String,Required:true
     },
     numberOfTicket:{
-        type:Number,Required:true
+        type:Number,
+        Required:true,
+        default:1
     },
     paidWith:{
-        type:Number,Required:true
+        type:String,
+        Required:true,
+        default:"cash"
     },
-    totalCost:{
+    cost:{
         type:Number, Required:true
+    }
+    ,
+    createdAt:{
+        type:Date , Required:true
     }
     
 });

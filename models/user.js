@@ -15,8 +15,8 @@ const userSchema=mongoose.Schema({
         Unique:true
            },
     phone:{
-        type:String,
-        Required:true},
+        type:String
+    },
     password:{
         type:String,
         Required:true,
@@ -34,18 +34,12 @@ const userSchema=mongoose.Schema({
     },
     roles:{
         type:String,
-        enum:['admin','user'],
+        enum:['admin','user'], 
         default:'user'
     },
     address:{
         type: String,
-        Required:true},
-    walletNo:{  
-        type: String,
-        Required:true},
-    payWith:{
-        type:String,
-        Required:true
+    
     },
     passwordChangedAt:Date,
     passwordResetToken:String,

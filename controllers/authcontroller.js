@@ -6,7 +6,11 @@ const jwt=require('jsonwebtoken');
 
 const Event=require('../models/event')
 const User=require('../models/user')
+const Wallet=require('../models/wallet')
 const sendEmail=require('../utils/email')
+const {OAuth2Client}=require('google-auth-library');
+const client=new OAuth2Client("1085439747019-ug7j4u6t08r99uqrbm3bg2r5d0t91nog.apps.googleusercontent.com");
+
 
 
 const signToken=(id)=>{
@@ -16,15 +20,24 @@ const signToken=(id)=>{
 exports.signup=async (req,res,next)=>{
    try{
            const {name,email,password,passwordConfirm,roles,phone,address,walletNo,payWith,passwordChangedAt}=req.body;
-             const createdUser=new User({
-               name,email,password,passwordConfirm,roles,phone,address,walletNo,payWith,passwordChangedAt
+
+             const user=new User({
+               name,email,password,passwordConfirm,roles,phone,address,passwordChangedAt
              });
    
-           await  createdUser.save();
-   
-           const token=signToken(createdUser._id);    
+           await  user.save();
+
+             const wallet=new Wallet({
+                walletNo:user.phone,
+                balance:1000,
+                createdAt:Date.now()
+             })
+
+             await wallet.save();
+
+           const token=signToken(user._id);    
            res.status(201).json({
-               token
+               token,user
                });
              }
              catch(err){
@@ -56,11 +69,12 @@ exports.signup=async (req,res,next)=>{
    
    
          res.status(201).json({
-                              token,
+                              token,user
                              });
    
    
    }
+
 
 exports.protect=async (req,res,next)=>{
     let token;
@@ -72,6 +86,9 @@ exports.protect=async (req,res,next)=>{
        if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
              token= req.headers.authorization.split(' ')[1];
                 }
+     
+
+
        if(!token){
           return next(new Error("you are not logged in to access"),401);
        }
@@ -79,13 +96,12 @@ exports.protect=async (req,res,next)=>{
     //2)verification token
      const decoded=await promisify(jwt.verify)(token,'my-secrete-of-long-character-ker');
  
-           
- 
+       
     //3)check if the user still exists
  
-       const  currentUser=await User.findById(decoded.id);
- 
-       if(!currentUser){
+     const  currentUser=await User.findById(decoded.id);
+
+      if(!currentUser){
          return next( res.json({status:"fail",message:"no user is belonging to this token"}));
        }
  
@@ -114,6 +130,7 @@ exports.protect=async (req,res,next)=>{
      
 
             if(! roles.includes(req.user.roles)){
+               
                 console.log(req.user.roles)
 
                 return next(res.json({message:"you didnt have permission to delete events."}));
@@ -152,10 +169,8 @@ exports.forgotPassword= async (req,res,next)=>{
                 });
 
                 res.json({
-
                    status:'success',
                    message:'Token has been sent to your mail'
-
                 });
                }catch(err){
                   console.log(err)
@@ -185,7 +200,7 @@ exports.resetPassword=async(req,res,next)=>{
                                  .digest('hex');
                                  console.log(hashedToken)
       const user=await User.findOne({passwordResetToken:hashedToken,passwordResetExpires:{$gt:Date.now()}});
-      console.log(user);
+
 
    //2) if the token not expired and there is a user set new password
 
@@ -215,4 +230,49 @@ exports.resetPassword=async(req,res,next)=>{
 
 
 }
+exports.googleLogin=async (req,res,next)=>{
+            const {tokenId}=req.body;
+            console.log(tokenId);
+            
+               client.verifyIdToken({idToken:tokenId, audience: "1085439747019-ug7j4u6t08r99uqrbm3bg2r5d0t91nog.apps.googleusercontent.com"}).then(
+                  response=>{ 
+                     const {email_verified,email,name}=response.payload;
+                     if(email_verified){
+                      User.findOne({email}).exec((err,user)=>{
+                           if(err){
+                              res.status(400).json({error:"something went wrong"});
+                           }
+                           else  {
+                              if(user){
+                                 const token=signToken(user._id);
+                                       res.status(201).json({token,user});
+                              }else {
+                                 let password=email+'my-secrete-of-long-character-ker'
+                                 let passwordConfirm=email+'my-secrete-of-long-character-ker'
+                                 const user=new User({
+                                    name,email,password,passwordConfirm
+                                  });
+                                  
+                                            user.save();
+
+                                          const wallet=new Wallet({
+                                             walletNo:user.email,
+                                             balance:1000,
+                                             createdAt:Date.now()
+                                          })
+                                           wallet.save();
+                                          const token=signToken(user._id);    
+                                          res.status(201).json({
+                                             token,user
+                                             });
+                              }
+                           }
+                        })
+                     }
+
+                     console.log(response.payload);
+                  } 
+               )
+}
+
  
